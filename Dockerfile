@@ -12,8 +12,7 @@ RUN npm run prisma:generate -w backend && npm run build -w backend
 FROM node:22-bookworm-slim AS runtime
 
 ENV NODE_ENV=production \
-    PORT=3000 \
-    PRISMA_SKIP_POSTINSTALL_GENERATE=true
+    PORT=3000
 
 WORKDIR /app
 RUN apt-get update \
@@ -23,12 +22,11 @@ RUN apt-get update \
 COPY package.json package-lock.json ./
 COPY backend/package.json backend/package.json
 COPY admin-web/package.json admin-web/package.json
-RUN npm ci --omit=dev
+COPY --from=builder /app/backend/prisma backend/prisma
+RUN npm ci --omit=dev && npm run prisma:generate -w backend
 
 COPY --from=builder /app/backend/dist backend/dist
-COPY --from=builder /app/backend/prisma backend/prisma
 COPY --from=builder /app/backend/healthcheck.cjs backend/healthcheck.cjs
-COPY --from=builder /app/node_modules/.prisma node_modules/.prisma
 
 USER node
 EXPOSE 3000
