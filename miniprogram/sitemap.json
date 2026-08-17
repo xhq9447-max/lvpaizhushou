@@ -1,0 +1,4 @@
+{
+  "desc": "旅拍管家客户服务小程序",
+  "rules": [{ "action": "disallow", "page": "*" }]
+}

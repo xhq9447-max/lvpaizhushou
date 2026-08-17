@@ -1,0 +1,15 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/create/create",
+    "pages/order/order"
+  ],
+  "window": {
+    "navigationBarTitleText": "旅拍管家",
+    "navigationBarBackgroundColor": "#315c4e",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f3f6f5"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

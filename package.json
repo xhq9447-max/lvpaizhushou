@@ -1,0 +1,14 @@
+{
+  "name": "travel-photo-saas",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": ["backend", "admin-web"],
+  "scripts": {
+    "dev": "npm run dev -w backend & npm run dev -w admin-web",
+    "build": "npm run build -w backend && npm run build -w admin-web",
+    "lint": "npm run lint -w backend && npm run lint -w admin-web",
+    "test": "npm run test -w backend",
+    "migrate:prod": "npx prisma migrate deploy --schema=backend/prisma/schema.prisma"
+  },
+  "engines": { "node": ">=20" }
+}

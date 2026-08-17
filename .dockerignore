@@ -1,0 +1,16 @@
+node_modules
+**/node_modules
+**/dist
+.git
+.gitignore
+.runtime
+.playwright-cli
+.env
+**/.env
+**/.env.*
+!**/.env.*.example
+coverage
+*.log
+docs
+miniprogram
+README.md

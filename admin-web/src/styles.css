@@ -1,0 +1,18 @@
+:root { font-family: Inter, "PingFang SC", "Microsoft YaHei", sans-serif; color: #1b2638; background: #f4f6f9; font-synthesis: none; --brand: #315c4e; --brand-soft: #e8f1ed; --muted: #788397; --border: #e7eaf0; }
+* { box-sizing: border-box; }
+html, body, #app { margin: 0; min-width: 1180px; min-height: 100vh; }
+body { background: #f4f6f9; }
+button, input { font: inherit; }
+.page { padding: 28px 32px 40px; }
+.page-head { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 22px; }
+.page-title { margin: 0; font-size: 24px; font-weight: 650; letter-spacing: -.3px; }
+.page-subtitle { margin: 7px 0 0; color: var(--muted); font-size: 14px; }
+.panel { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 20px; box-shadow: 0 2px 12px rgba(22,34,50,.025); }
+.toolbar { display: flex; gap: 12px; margin-bottom: 18px; }
+.status-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 7px; background: #42a778; }
+.status-dot.off { background: #aab1bc; }
+.el-button--primary { --el-button-bg-color: var(--brand); --el-button-border-color: var(--brand); --el-button-hover-bg-color: #3f7160; --el-button-hover-border-color: #3f7160; }
+.el-table { --el-table-header-bg-color: #f8f9fb; --el-table-border-color: #edf0f4; }
+.el-dialog { border-radius: 16px; }
+.pagination { display: flex; justify-content: flex-end; margin-top: 20px; }
+@media (max-width: 700px) { html, body, #app { min-width: 0; } }
