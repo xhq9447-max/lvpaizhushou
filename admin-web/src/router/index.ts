@@ -1,9 +1,9 @@
-import { createRouter, createWebHistory } from 'vue-router';
+import { createRouter, createWebHashHistory } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import Login from '@/views/Login.vue';
 import Layout from '@/components/AppLayout.vue';
 
-const router = createRouter({ history: createWebHistory(), routes: [
+const router = createRouter({ history: createWebHashHistory(), routes: [
   { path: '/login', component: Login, meta: { public: true } },
   { path: '/client/create/:merchantCode', name: 'client-create', component: () => import('@/views/ClientCreate.vue'), meta: { public: true } },
   { path: '/client/order/:token', name: 'client-order', component: () => import('@/views/ClientOrder.vue'), meta: { public: true } },
