@@ -28,4 +28,26 @@ function normalizeResponse(response) {
 
 function createRequestId() { return `${Date.now()}-${Math.random().toString(16).slice(2)}`; }
 
-module.exports = { request };
+function uploadOrderFile(order, file) {
+  const extension = (file.name || file.tempFilePath).match(/\.[a-zA-Z0-9]{1,10}$/);
+  const cloudPath = `client-uploads/${order.id}/${Date.now()}-${Math.random().toString(16).slice(2)}${extension ? extension[0].toLowerCase() : ''}`;
+  const resolvedMimeType = file.mimeType || mimeType(file.name || file.tempFilePath);
+  return wx.cloud.uploadFile({ cloudPath, filePath: file.tempFilePath }).then((uploaded) => request(`/client/orders/${order.accessToken}/files`, {
+    method: 'POST',
+    data: {
+      fileId: uploaded.fileID,
+      cloudPath,
+      originalName: file.name || `旅拍照片${extension ? extension[0] : ''}`,
+      mimeType: resolvedMimeType,
+      size: file.size,
+      category: resolvedMimeType.startsWith('image/') ? 'PHOTO' : 'DOCUMENT',
+    },
+  }));
+}
+
+function mimeType(name) {
+  const extension = (name.split('.').pop() || '').toLowerCase();
+  return ({ jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', heic: 'image/heic', pdf: 'application/pdf' })[extension] || 'application/octet-stream';
+}
+
+module.exports = { request, uploadOrderFile };

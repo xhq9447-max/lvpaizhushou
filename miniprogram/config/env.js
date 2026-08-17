@@ -1,7 +1,7 @@
 const environments = {
-  develop: { transport: 'https', apiBaseUrl: '', cloudEnv: '', serviceName: '' },
-  trial: { transport: 'cloudContainer', apiBaseUrl: '', cloudEnv: '', serviceName: '' },
-  release: { transport: 'cloudContainer', apiBaseUrl: '', cloudEnv: '', serviceName: '' },
+  develop: { transport: 'cloudContainer', apiBaseUrl: '', cloudEnv: 'travel-prod-d3g22et6u30870d6a', serviceName: 'travel-api' },
+  trial: { transport: 'cloudContainer', apiBaseUrl: '', cloudEnv: 'travel-prod-d3g22et6u30870d6a', serviceName: 'travel-api' },
+  release: { transport: 'cloudContainer', apiBaseUrl: '', cloudEnv: 'travel-prod-d3g22et6u30870d6a', serviceName: 'travel-api' },
 };
 
 function getEnvironment() {

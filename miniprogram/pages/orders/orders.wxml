@@ -1,0 +1,11 @@
+<view class="page">
+  <view class="page-title">我的订单</view><view class="muted intro">服务进度、增值项目和交付文件都在这里。</view>
+  <scroll-view class="filters" scroll-x enhanced show-scrollbar="{{false}}"><view class="filter {{active === item.key ? 'active' : ''}}" wx:for="{{filters}}" wx:key="key" data-key="{{item.key}}" bindtap="changeFilter">{{item.label}}</view></scroll-view>
+  <view wx:if="{{!loading && !filtered.length}}" class="empty card"><view class="empty-icon">旅</view><view class="empty-title">暂无订单</view><view class="muted">从门店二维码或商家码开始建单。</view><button class="primary empty-button" bindtap="goHome">返回首页</button></view>
+  <view class="order card" wx:for="{{filtered}}" wx:key="id" data-token="{{item.accessToken}}" bindtap="openOrder">
+    <view class="order-top"><view class="merchant">{{item.merchant.name}}</view><text class="tag">{{item.statusLabel}}</text></view>
+    <view class="package">{{item.packageName || '旅拍服务订单'}}</view>
+    <view class="detail"><text>{{item.store.name}}</text><text>{{item.appointmentText}}</text></view>
+    <view class="order-bottom"><text>订单号 {{item.orderNo}}</text><text class="arrow">查看详情 ›</text></view>
+  </view>
+</view>

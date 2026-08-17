@@ -1,8 +1,9 @@
-import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Headers, Param, Patch, Post, Query } from '@nestjs/common';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { RequirePermissions } from '../common/decorators/permissions.decorator';
 import { Public } from '../common/decorators/public.decorator';
 import { AuthUser } from '../common/types/auth-user';
+import { clientOpenId } from '../common/utils/client-identity';
 import { CreateOrderDto, CreateValueAddedDto, DisputeValueAddedDto, PublicCreateOrderDto, QueryOrdersDto, QueryStageDto, ReplaceServiceDto, StageDto } from './dto/order.dto';
 import { OrdersService } from './orders.service';
 
@@ -25,9 +26,11 @@ export class OrdersController {
 export class ClientOrdersController {
   constructor(private readonly service: OrdersService) {}
   @Get('merchants/:merchantCode') merchant(@Param('merchantCode') merchantCode: string) { return this.service.publicMerchant(merchantCode); }
-  @Post('orders') create(@Body() dto: PublicCreateOrderDto) { return this.service.publicCreate(dto); }
-  @Get('orders/:token') order(@Param('token') token: string) { return this.service.clientOrder(token); }
-  @Post('orders/:token/value-added/:id/confirm') confirm(@Param('token') token: string, @Param('id') id: string) { return this.service.clientConfirm(token, id); }
-  @Post('orders/:token/value-added/:id/dispute') dispute(@Param('token') token: string, @Param('id') id: string, @Body() dto: DisputeValueAddedDto) { return this.service.clientDispute(token, id, dto.reason); }
-  @Post('orders/:token/selection-confirm') confirmSelection(@Param('token') token: string) { return this.service.clientConfirmSelection(token); }
+  @Get('me') me(@Headers() headers: Record<string, string | string[] | undefined>) { return this.service.clientProfile(clientOpenId(headers)); }
+  @Get('orders') orders(@Headers() headers: Record<string, string | string[] | undefined>) { return this.service.clientOrders(clientOpenId(headers)); }
+  @Post('orders') create(@Body() dto: PublicCreateOrderDto, @Headers() headers: Record<string, string | string[] | undefined>) { return this.service.publicCreate(dto, clientOpenId(headers)); }
+  @Get('orders/:token') order(@Param('token') token: string, @Headers() headers: Record<string, string | string[] | undefined>) { return this.service.clientOrder(token, clientOpenId(headers)); }
+  @Post('orders/:token/value-added/:id/confirm') confirm(@Param('token') token: string, @Param('id') id: string, @Headers() headers: Record<string, string | string[] | undefined>) { return this.service.clientConfirm(token, id, clientOpenId(headers)); }
+  @Post('orders/:token/value-added/:id/dispute') dispute(@Param('token') token: string, @Param('id') id: string, @Body() dto: DisputeValueAddedDto, @Headers() headers: Record<string, string | string[] | undefined>) { return this.service.clientDispute(token, id, dto.reason, clientOpenId(headers)); }
+  @Post('orders/:token/selection-confirm') confirmSelection(@Param('token') token: string, @Headers() headers: Record<string, string | string[] | undefined>) { return this.service.clientConfirmSelection(token, clientOpenId(headers)); }
 }

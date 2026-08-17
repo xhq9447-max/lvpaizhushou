@@ -2,8 +2,21 @@
   "pages": [
     "pages/index/index",
     "pages/create/create",
-    "pages/order/order"
+    "pages/order/order",
+    "pages/orders/orders",
+    "pages/profile/profile"
   ],
+  "tabBar": {
+    "color": "#7d8984",
+    "selectedColor": "#315c4e",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      { "pagePath": "pages/index/index", "text": "首页" },
+      { "pagePath": "pages/orders/orders", "text": "订单" },
+      { "pagePath": "pages/profile/profile", "text": "我的" }
+    ]
+  },
   "window": {
     "navigationBarTitleText": "旅拍管家",
     "navigationBarBackgroundColor": "#315c4e",
@@ -11,5 +24,6 @@
     "backgroundColor": "#f3f6f5"
   },
   "style": "v2",
+  "lazyCodeLoading": "requiredComponents",
   "sitemapLocation": "sitemap.json"
 }

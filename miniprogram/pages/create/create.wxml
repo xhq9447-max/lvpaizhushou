@@ -1,1 +1,18 @@
-<view class="page" wx:if="{{!loading}}"><view class="title">{{merchantName}}</view><view class="muted">填写资料后，门店将确认订单并安排服务。</view><view class="card"><view class="field"><text class="label">姓名</text><input class="input" data-field="customerName" bindinput="input"/></view><view class="field"><text class="label">手机号</text><input class="input" type="number" data-field="customerPhone" bindinput="input"/></view><view class="field"><text class="label">门店</text><picker range="{{stores}}" range-key="name" bindchange="chooseStore"><view class="picker">{{stores[storeIndex].name || '请选择'}}</view></picker></view><view class="field"><text class="label">套餐或需求</text><input class="input" data-field="packageName" bindinput="input"/></view><view class="field"><text class="label">补充说明</text><textarea class="textarea" data-field="notes" bindinput="input"/></view><button class="primary" loading="{{saving}}" bindtap="submit">提交订单</button></view></view>
+<view class="page" wx:if="{{!loading}}">
+  <view class="header"><view class="eyebrow">CREATE ORDER</view><view class="title">{{merchantName}}</view><view class="muted">资料只用于本次旅拍服务和订单通知。</view></view>
+  <view class="card">
+    <view class="section-title">联系人</view>
+    <view class="field"><text class="label">姓名</text><input class="input" placeholder="怎么称呼您" value="{{customerName}}" data-field="customerName" bindinput="input"/></view>
+    <view class="field"><text class="label">手机号</text><input class="input" type="number" maxlength="11" placeholder="用于门店联系" value="{{customerPhone}}" data-field="customerPhone" bindinput="input"/></view>
+  </view>
+  <view class="card">
+    <view class="section-title">服务安排</view>
+    <view class="field"><text class="label">门店</text><picker range="{{stores}}" range-key="name" bindchange="chooseStore"><view class="picker">{{stores[storeIndex].name || '请选择门店'}}</view></picker></view>
+    <view class="field"><text class="label">预约日期（选填）</text><picker mode="date" bindchange="chooseDate"><view class="picker">{{appointmentDate || '选择日期'}}</view></picker></view>
+    <view class="field" wx:if="{{appointmentDate}}"><text class="label">到店时间</text><picker mode="time" bindchange="chooseTime"><view class="picker">{{appointmentTime || '09:00'}}</view></picker></view>
+    <view class="field"><text class="label">套餐或拍摄需求</text><input class="input" placeholder="例如：古城双人旅拍" value="{{packageName}}" data-field="packageName" bindinput="input"/></view>
+    <view class="field"><text class="label">补充说明</text><textarea class="textarea" maxlength="1000" placeholder="人数、服装或其他需求" value="{{notes}}" data-field="notes" bindinput="input"/></view>
+  </view>
+  <button class="primary submit" loading="{{saving}}" disabled="{{saving}}" bindtap="submit">提交服务订单</button>
+  <view class="agreement">提交即表示同意门店为履行旅拍服务使用以上信息</view>
+</view>

@@ -1,0 +1,13 @@
+<view class="page">
+  <view class="profile-card">
+    <view class="avatar">{{profile.avatar || '旅'}}</view>
+    <view><view class="name">{{profile.name || '微信用户'}}</view><view class="phone">{{profile.phone || '创建订单后自动绑定资料'}}</view></view>
+  </view>
+  <view class="stats card" bindtap="openOrders"><view><view class="number">{{profile.orderCount}}</view><view class="muted">我的订单</view></view><view class="stats-link">查看全部 ›</view></view>
+  <view class="card menu">
+    <view class="menu-item" bindtap="openOrders"><text>我的旅拍订单</text><text>›</text></view>
+    <view class="menu-item" bindtap="contact"><text>使用帮助</text><text>›</text></view>
+    <view class="menu-item" bindtap="privacy"><text>隐私说明</text><text>›</text></view>
+  </view>
+  <view class="version">旅拍管家 · 客户版</view>
+</view>

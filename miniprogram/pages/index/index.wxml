@@ -1,1 +1,28 @@
-<view class="page"><view class="card"><view class="title">旅拍管家</view><view class="muted">扫描门店二维码，创建本次旅拍服务订单。</view><view class="field"><text class="label">商家码</text><input class="input" placeholder="请输入商家码" value="{{merchantCode}}" bindinput="onCodeInput"/></view><button class="primary" bindtap="openCreate">进入建单</button><button class="secondary" bindtap="scan">扫描门店二维码</button></view></view>
+<view class="page">
+  <view class="hero">
+    <view class="eyebrow">TRAVEL PHOTO SERVICE</view>
+    <view class="hero-title">记录旅途，也照顾好每一步</view>
+    <view class="hero-desc">扫码进入门店，创建服务订单并随时查看进度。</view>
+    <button class="hero-button" bindtap="scan">扫码进入门店</button>
+  </view>
+  <view class="card code-card">
+    <view class="section-title">已有商家码</view>
+    <view class="code-row">
+      <input class="input code-input" placeholder="输入商家码" value="{{merchantCode}}" bindinput="onCodeInput"/>
+      <button class="compact primary" bindtap="openCreate">去建单</button>
+    </view>
+  </view>
+  <view class="section-head">
+    <view class="section-title">最近订单</view>
+    <view class="link" bindtap="openOrders">查看全部</view>
+  </view>
+  <view wx:if="{{!loading && !recentOrders.length}}" class="empty card">
+    <view class="empty-title">还没有订单</view>
+    <view class="muted">扫描门店二维码，开始第一次旅拍服务。</view>
+  </view>
+  <view class="order-card card" wx:for="{{recentOrders}}" wx:key="id" data-token="{{item.accessToken}}" bindtap="openOrder">
+    <view class="order-top"><view class="merchant">{{item.merchant.name}}</view><text class="tag">{{item.statusLabel}}</text></view>
+    <view class="order-package">{{item.packageName || '旅拍服务订单'}}</view>
+    <view class="muted">{{item.store.name}} · {{item.createdDate}}</view>
+  </view>
+</view>

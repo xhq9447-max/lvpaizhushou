@@ -1,1 +1,38 @@
-<view class="page" wx:if="{{!loading && order}}"><view class="card"><view class="title">{{order.customer.name}}</view><text class="tag">{{statusLabel}}</text><view class="muted order-no">{{order.orderNo}} · {{order.store.name}}</view></view><view class="card"><view class="section-title">服务人员</view><block wx:for="{{order.serviceRecords}}" wx:key="id"><view class="row" wx:if="{{item.isCurrent}}"><text>{{item.stage === 'MAKEUP' ? '化妆师' : '摄影师'}}</text><text>{{item.employee.name}}</text></view></block></view><view class="card"><view class="section-title">增值服务确认</view><view wx:if="{{!order.valueAddedServices.length}}" class="muted">暂无增值服务</view><view class="addon" wx:for="{{order.valueAddedServices}}" wx:key="id"><view><text class="addon-name">{{item.name}} × {{item.quantity}}</text><view class="muted">{{item.employee.name}} · ¥{{item.totalAmount}}</view></view><view wx:if="{{item.status === 'PENDING'}}"><button size="mini" class="primary" data-id="{{item.id}}" bindtap="confirmAddon">确认</button><button size="mini" data-id="{{item.id}}" bindtap="disputeAddon">异议</button></view><text wx:else class="tag">{{item.status === 'CONFIRMED' ? '已确认' : '有异议'}}</text></view></view><view class="card selection" wx:if="{{order.status === 'WAITING_SELECTION' || order.status === 'WAITING_RETOUCH'}}"><view class="section-title">外部软件选片</view><view class="muted" wx:if="{{order.status === 'WAITING_SELECTION'}}">请在门店指定的软件中完成选片，然后在这里确认。</view><view class="muted" wx:else>选片已经确认，正在等待后期修片。</view><button wx:if="{{order.status === 'WAITING_SELECTION'}}" class="primary" bindtap="confirmSelection">确认已完成选片</button></view></view>
+<view class="page" wx:if="{{!loading && order}}">
+  <view class="summary card">
+    <view class="summary-top"><view><view class="merchant">{{order.merchant.name}}</view><view class="order-title">{{order.packageName || '旅拍服务订单'}}</view></view><text class="tag">{{order.statusLabel}}</text></view>
+    <view class="muted">订单号 {{order.orderNo}}</view>
+    <view class="summary-grid"><view><text class="caption">门店</text><text>{{order.store.name}}</text></view><view><text class="caption">预约时间</text><text>{{order.appointmentText}}</text></view></view>
+  </view>
+  <view class="card">
+    <view class="section-title">服务进度</view>
+    <view class="timeline" wx:for="{{order.progress}}" wx:key="status">
+      <view class="dot {{item.done ? 'done' : ''}} {{item.current ? 'current' : ''}}"></view>
+      <view class="line {{item.done ? 'done-line' : ''}}" wx:if="{{index < order.progress.length - 1}}"></view>
+      <view class="step-label {{item.current ? 'current-label' : ''}}">{{item.label}}</view>
+    </view>
+  </view>
+  <view class="card" wx:if="{{order.serviceRecords.length}}">
+    <view class="section-title">服务人员</view>
+    <view class="person" wx:for="{{order.serviceRecords}}" wx:key="id"><view><view class="person-role">{{item.stageLabel}}</view><view class="person-name">{{item.employee.name}}</view></view><text class="light-tag">{{item.serviceStatus}}</text></view>
+  </view>
+  <view class="card">
+    <view class="section-title">增值服务</view>
+    <view wx:if="{{!order.valueAddedServices.length}}" class="muted empty-line">暂无待确认项目</view>
+    <view class="addon" wx:for="{{order.valueAddedServices}}" wx:key="id">
+      <view class="addon-main"><view class="addon-name">{{item.name}} × {{item.quantity}}</view><view class="muted">{{item.description || item.employee.name}} · ¥{{item.totalAmount}}</view><view class="dispute" wx:if="{{item.customerNote}}">异议：{{item.customerNote}}</view></view>
+      <view class="addon-actions" wx:if="{{item.status === 'PENDING'}}"><button size="mini" class="primary" data-id="{{item.id}}" bindtap="confirmAddon">确认</button><button size="mini" data-id="{{item.id}}" bindtap="disputeAddon">异议</button></view>
+      <text wx:else class="light-tag">{{item.status === 'CONFIRMED' ? '已确认' : item.status === 'DISPUTED' ? '有异议' : '已取消'}}</text>
+    </view>
+  </view>
+  <view class="card selection" wx:if="{{order.status === 'WAITING_SELECTION' || order.status === 'WAITING_RETOUCH'}}">
+    <view class="section-title">选片确认</view><view class="muted" wx:if="{{order.status === 'WAITING_SELECTION'}}">请按门店指引完成选片，再点击确认。</view><view class="muted" wx:else>选片已确认，门店正在进行后期修片。</view>
+    <button wx:if="{{order.status === 'WAITING_SELECTION'}}" class="primary action-button" bindtap="confirmSelection">确认已完成选片</button>
+  </view>
+  <view class="card">
+    <view class="file-head"><view><view class="section-title">订单文件</view><view class="muted">上传参考照片、确认单或 PDF</view></view><text class="count">{{files.length}} 个</text></view>
+    <view class="file" wx:for="{{files}}" wx:key="id" data-index="{{index}}" bindtap="previewFile"><view class="file-icon">{{item.mimeType === 'application/pdf' ? 'PDF' : '图'}}</view><view class="file-info"><view class="file-name">{{item.originalName}}</view><view class="muted">点击预览</view></view><view class="arrow">›</view></view>
+    <view class="upload-actions"><button class="secondary" loading="{{uploading}}" bindtap="choosePhotos">上传照片</button><button class="plain" loading="{{uploading}}" bindtap="chooseDocument">上传文件</button></view>
+  </view>
+  <button class="contact" bindtap="callStore">联系门店</button>
+</view>

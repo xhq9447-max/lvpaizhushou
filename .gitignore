@@ -29,3 +29,5 @@ admin-web/.env.local
 .runtime/
 .playwright-cli/
 miniprogram/project.private.config.json
+miniprogram/project.config.json
+miniprogram/preview-qrcode.png

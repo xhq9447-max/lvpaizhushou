@@ -1,9 +1,11 @@
-import { BadRequestException, Controller, Get, Param, Post, UploadedFile, UseInterceptors, Body } from '@nestjs/common';
+import { BadRequestException, Controller, Get, Headers, Param, Post, UploadedFile, UseInterceptors, Body } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { RequirePermissions } from '../common/decorators/permissions.decorator';
+import { Public } from '../common/decorators/public.decorator';
 import { AuthUser } from '../common/types/auth-user';
-import { UploadFileDto } from './dto/file.dto';
+import { clientOpenId } from '../common/utils/client-identity';
+import { RegisterClientFileDto, UploadFileDto } from './dto/file.dto';
 import { FilesService } from './files.service';
 
 const allowedMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'application/pdf']);
@@ -32,4 +34,20 @@ export class FilesController {
   @RequirePermissions('file:view')
   @Get(':id/download-url')
   downloadUrl(@Param('id') id: string, @CurrentUser() user: AuthUser) { return this.service.downloadUrl(id, user); }
+}
+
+@Public()
+@Controller('client')
+export class ClientFilesController {
+  constructor(private readonly service: FilesService) {}
+
+  @Get('orders/:token/files')
+  files(@Param('token') token: string, @Headers() headers: Record<string, string | string[] | undefined>) {
+    return this.service.clientFiles(token, clientOpenId(headers));
+  }
+
+  @Post('orders/:token/files')
+  register(@Param('token') token: string, @Body() dto: RegisterClientFileDto, @Headers() headers: Record<string, string | string[] | undefined>) {
+    return this.service.registerClientFile(token, dto, clientOpenId(headers));
+  }
 }

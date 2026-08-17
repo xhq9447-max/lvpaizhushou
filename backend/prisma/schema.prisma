@@ -191,6 +191,8 @@ model Customer {
   orders       Order[]
 
   @@unique([merchantId, phone])
+  @@unique([merchantId, wechatOpenid])
+  @@index([wechatOpenid])
   @@index([merchantId, name])
   @@map("customers")
 }
@@ -280,7 +282,8 @@ model ValueAddedService {
 model FileAsset {
   id           String       @id @default(cuid())
   merchantId   String       @map("merchant_id")
-  uploaderId   String       @map("uploader_id")
+  uploaderId   String?      @map("uploader_id")
+  customerOpenid String?    @map("customer_openid")
   fileId       String       @unique @map("file_id") @db.VarChar(512)
   url          String?      @db.Text
   cloudPath    String       @map("cloud_path")
@@ -291,10 +294,11 @@ model FileAsset {
   metadata     Json?
   createdAt    DateTime     @default(now()) @map("created_at")
   merchant     Merchant     @relation(fields: [merchantId], references: [id])
-  uploader     User         @relation("UploadedFiles", fields: [uploaderId], references: [id])
+  uploader     User?        @relation("UploadedFiles", fields: [uploaderId], references: [id])
 
   @@index([merchantId, category, createdAt])
   @@index([uploaderId, createdAt])
+  @@index([customerOpenid, createdAt])
   @@map("file_assets")
 }
 

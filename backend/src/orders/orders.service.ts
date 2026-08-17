@@ -9,6 +9,7 @@ import { CreateOrderDto, CreateValueAddedDto, PublicCreateOrderDto, QueryOrdersD
 const orderInclude = {
   customer: true,
   store: true,
+  merchant: { select: { name: true, logo: true, contactPhone: true } },
   serviceRecords: { orderBy: { createdAt: 'asc' as const }, include: { employee: true } },
   valueAddedServices: { orderBy: { createdAt: 'desc' as const }, include: { employee: true } },
 };
@@ -63,12 +64,12 @@ export class OrdersService {
     return { name: merchant.name, merchantCode, stores };
   }
 
-  async publicCreate(dto: PublicCreateOrderDto) {
+  async publicCreate(dto: PublicCreateOrderDto, openId: string) {
     const merchant = await this.prisma.merchant.findUnique({ where: { merchantCode: dto.merchantCode } });
     if (!merchant || merchant.status !== 'ACTIVE') throw new NotFoundException('商家不存在或暂不可用');
     const { merchantCode: _merchantCode, ...orderDto } = dto;
     void _merchantCode;
-    return this.createForMerchant(merchant.id, orderDto);
+    return this.createForMerchant(merchant.id, orderDto, openId);
   }
 
   async confirmOrder(id: string, user: AuthUser) {
@@ -156,28 +157,53 @@ export class OrdersService {
     return item;
   }
 
-  async clientOrder(token: string) {
+  async clientProfile(openId: string) {
+    const customers = await this.prisma.customer.findMany({
+      where: { wechatOpenid: openId },
+      select: { name: true, phone: true, updatedAt: true },
+      orderBy: { updatedAt: 'desc' },
+    });
+    const orderCount = await this.prisma.order.count({ where: { customer: { wechatOpenid: openId } } });
+    return { name: customers[0]?.name ?? '', phone: customers[0]?.phone ?? '', orderCount };
+  }
+
+  async clientOrders(openId: string) {
+    return this.prisma.order.findMany({
+      where: { customer: { wechatOpenid: openId } },
+      include: { customer: true, store: true, merchant: { select: { name: true, logo: true } } },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+    });
+  }
+
+  async clientOrder(token: string, openId: string) {
     const order = await this.prisma.order.findUnique({ where: { accessToken: token }, include: orderInclude });
-    if (!order) throw new NotFoundException('订单链接无效');
+    if (!order) throw new NotFoundException('订单不存在或无权访问');
+    if (!order.customer.wechatOpenid) {
+      const bound = await this.prisma.customer.findUnique({ where: { merchantId_wechatOpenid: { merchantId: order.merchantId, wechatOpenid: openId } } });
+      if (bound && bound.id !== order.customerId) throw new NotFoundException('订单不存在或无权访问');
+      order.customer = await this.prisma.customer.update({ where: { id: order.customerId }, data: { wechatOpenid: openId } });
+    }
+    if (order.customer.wechatOpenid !== openId) throw new NotFoundException('订单不存在或无权访问');
     return order;
   }
 
-  async clientConfirm(token: string, itemId: string) {
-    const order = await this.clientOrder(token);
+  async clientConfirm(token: string, itemId: string, openId: string) {
+    const order = await this.clientOrder(token, openId);
     const result = await this.prisma.valueAddedService.updateMany({ where: { id: itemId, orderId: order.id, status: { in: [ValueAddedStatus.PENDING, ValueAddedStatus.DISPUTED] } }, data: { status: ValueAddedStatus.CONFIRMED, confirmedAt: new Date(), disputedAt: null, customerNote: null } });
     if (!result.count) throw new BadRequestException('该增值服务已处理或不存在');
-    return this.clientOrder(token);
+    return this.clientOrder(token, openId);
   }
 
-  async clientDispute(token: string, itemId: string, reason: string) {
-    const order = await this.clientOrder(token);
+  async clientDispute(token: string, itemId: string, reason: string, openId: string) {
+    const order = await this.clientOrder(token, openId);
     const result = await this.prisma.valueAddedService.updateMany({ where: { id: itemId, orderId: order.id, status: ValueAddedStatus.PENDING }, data: { status: ValueAddedStatus.DISPUTED, disputedAt: new Date(), customerNote: reason } });
     if (!result.count) throw new BadRequestException('该增值服务已处理或不存在');
-    return this.clientOrder(token);
+    return this.clientOrder(token, openId);
   }
 
-  async clientConfirmSelection(token: string) {
-    const order = await this.clientOrder(token);
+  async clientConfirmSelection(token: string, openId: string) {
+    const order = await this.clientOrder(token, openId);
     if (order.status !== OrderStatus.WAITING_SELECTION) throw new BadRequestException('订单当前不在待选片阶段');
     return this.prisma.order.update({
       where: { id: order.id },
@@ -186,13 +212,18 @@ export class OrdersService {
     });
   }
 
-  private async createForMerchant(merchantId: string, dto: CreateOrderDto) {
+  private async createForMerchant(merchantId: string, dto: CreateOrderDto, openId?: string) {
     const store = await this.prisma.store.findFirst({ where: { id: dto.storeId, merchantId, status: 'ACTIVE', deletedAt: null } });
     if (!store) throw new BadRequestException('门店不存在或不可用');
-    const customer = await this.prisma.customer.upsert({
-      where: { merchantId_phone: { merchantId, phone: dto.customerPhone } }, update: { name: dto.customerName },
-      create: { merchantId, name: dto.customerName, phone: dto.customerPhone },
-    });
+    let customer = await this.prisma.customer.findUnique({ where: { merchantId_phone: { merchantId, phone: dto.customerPhone } } });
+    if (customer?.wechatOpenid && openId && customer.wechatOpenid !== openId) throw new BadRequestException('该手机号已绑定其他微信');
+    if (!customer && openId) {
+      const bound = await this.prisma.customer.findUnique({ where: { merchantId_wechatOpenid: { merchantId, wechatOpenid: openId } } });
+      if (bound) throw new BadRequestException('当前微信已绑定其他手机号');
+    }
+    customer = customer
+      ? await this.prisma.customer.update({ where: { id: customer.id }, data: { name: dto.customerName, wechatOpenid: openId ?? customer.wechatOpenid } })
+      : await this.prisma.customer.create({ data: { merchantId, name: dto.customerName, phone: dto.customerPhone, wechatOpenid: openId } });
     return this.prisma.order.create({ data: {
       merchantId, storeId: dto.storeId, customerId: customer.id, orderNo: this.orderNo(), accessToken: randomBytes(24).toString('hex'),
       packageName: dto.packageName, appointmentAt: dto.appointmentAt ? new Date(dto.appointmentAt) : undefined, notes: dto.notes,
