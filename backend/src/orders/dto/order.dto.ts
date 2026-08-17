@@ -2,6 +2,11 @@ import { OrderStatus, ServiceStage } from '@prisma/client';
 import { Type } from 'class-transformer';
 import { IsDateString, IsEnum, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
 
+export class WechatContactDto {
+  @IsString() @IsNotEmpty() @MaxLength(256) phoneCode!: string;
+  @IsOptional() @IsString() @MaxLength(100) nickname?: string;
+}
+
 export class CreateOrderDto {
   @IsString() @IsNotEmpty() @MaxLength(50) customerName!: string;
   @IsString() @IsNotEmpty() @MaxLength(30) customerPhone!: string;

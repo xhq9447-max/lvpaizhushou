@@ -1,4 +1,5 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { EmployeeStatus, OrderStatus, Prisma, RoleCode, ServiceRecordStatus, ServiceStage, ValueAddedStatus } from '@prisma/client';
 import { randomBytes } from 'crypto';
 import { AuthUser } from '../common/types/auth-user';
@@ -16,7 +17,9 @@ const orderInclude = {
 
 @Injectable()
 export class OrdersService {
-  constructor(private readonly prisma: PrismaService, private readonly logs: OperationLogsService) {}
+  private wechatAccessToken?: { value: string; expiresAt: number };
+
+  constructor(private readonly prisma: PrismaService, private readonly logs: OperationLogsService, private readonly config: ConfigService) {}
 
   async findAll(query: QueryOrdersDto, user: AuthUser) {
     const employee = await this.employeeForUser(user);
@@ -167,6 +170,21 @@ export class OrdersService {
     return { name: customers[0]?.name ?? '', phone: customers[0]?.phone ?? '', orderCount };
   }
 
+  async wechatContact(phoneCode: string, nickname?: string) {
+    const accessToken = await this.getWechatAccessToken();
+    const response = await fetch(`https://api.weixin.qq.com/wxa/business/getuserphonenumber?access_token=${encodeURIComponent(accessToken)}`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ code: phoneCode }),
+    });
+    const result = await response.json() as { errcode?: number; errmsg?: string; phone_info?: { purePhoneNumber?: string } };
+    const phone = result.phone_info?.purePhoneNumber;
+    if (!response.ok || result.errcode || !phone || !/^1[3-9]\d{9}$/.test(phone)) {
+      throw new BadRequestException('微信手机号授权失败，请重新授权');
+    }
+    return { name: nickname?.trim() || '微信用户', phone };
+  }
+
   async clientOrders(openId: string) {
     return this.prisma.order.findMany({
       where: { customer: { wechatOpenid: openId } },
@@ -264,5 +282,16 @@ export class OrdersService {
   }
 
   private stageRole(stage: ServiceStage) { return stage === ServiceStage.MAKEUP ? RoleCode.MAKEUP : RoleCode.PHOTOGRAPHER; }
+  private async getWechatAccessToken() {
+    if (this.wechatAccessToken && this.wechatAccessToken.expiresAt > Date.now()) return this.wechatAccessToken.value;
+    const appId = this.config.get<string>('WECHAT_APP_ID');
+    const appSecret = this.config.get<string>('WECHAT_APP_SECRET');
+    if (!appId || !appSecret) throw new ServiceUnavailableException('微信联系人授权尚未配置完成');
+    const response = await fetch(`https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${encodeURIComponent(appId)}&secret=${encodeURIComponent(appSecret)}`);
+    const result = await response.json() as { access_token?: string; expires_in?: number; errcode?: number };
+    if (!response.ok || result.errcode || !result.access_token) throw new ServiceUnavailableException('微信授权服务暂时不可用');
+    this.wechatAccessToken = { value: result.access_token, expiresAt: Date.now() + Math.max(60, (result.expires_in || 7200) - 300) * 1000 };
+    return result.access_token;
+  }
   private orderNo() { const now = new Date(); return `TP${now.toISOString().slice(0, 10).replaceAll('-', '')}${randomBytes(4).toString('hex').toUpperCase()}`; }
 }

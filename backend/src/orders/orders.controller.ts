@@ -4,7 +4,7 @@ import { RequirePermissions } from '../common/decorators/permissions.decorator';
 import { Public } from '../common/decorators/public.decorator';
 import { AuthUser } from '../common/types/auth-user';
 import { clientOpenId } from '../common/utils/client-identity';
-import { CreateOrderDto, CreateValueAddedDto, DisputeValueAddedDto, PublicCreateOrderDto, QueryOrdersDto, QueryStageDto, ReplaceServiceDto, StageDto } from './dto/order.dto';
+import { CreateOrderDto, CreateValueAddedDto, DisputeValueAddedDto, PublicCreateOrderDto, QueryOrdersDto, QueryStageDto, ReplaceServiceDto, StageDto, WechatContactDto } from './dto/order.dto';
 import { OrdersService } from './orders.service';
 
 @Controller('orders')
@@ -27,6 +27,7 @@ export class ClientOrdersController {
   constructor(private readonly service: OrdersService) {}
   @Get('merchants/:merchantCode') merchant(@Param('merchantCode') merchantCode: string) { return this.service.publicMerchant(merchantCode); }
   @Get('me') me(@Headers() headers: Record<string, string | string[] | undefined>) { return this.service.clientProfile(clientOpenId(headers)); }
+  @Post('contact') contact(@Body() dto: WechatContactDto) { return this.service.wechatContact(dto.phoneCode, dto.nickname); }
   @Get('orders') orders(@Headers() headers: Record<string, string | string[] | undefined>) { return this.service.clientOrders(clientOpenId(headers)); }
   @Post('orders') create(@Body() dto: PublicCreateOrderDto, @Headers() headers: Record<string, string | string[] | undefined>) { return this.service.publicCreate(dto, clientOpenId(headers)); }
   @Get('orders/:token') order(@Param('token') token: string, @Headers() headers: Record<string, string | string[] | undefined>) { return this.service.clientOrder(token, clientOpenId(headers)); }
