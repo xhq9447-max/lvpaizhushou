@@ -34,4 +34,4 @@ USER node
 EXPOSE 3000
 HEALTHCHECK CMD node /app/backend/healthcheck.cjs
 
-CMD ["node", "backend/dist/main.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy --schema=backend/prisma/schema.prisma && node backend/dist/main.js"]

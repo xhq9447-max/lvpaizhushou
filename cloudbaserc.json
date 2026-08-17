@@ -1,0 +1,8 @@
+{
+  "version": "2.0",
+  "envId": "travel-prod-d3g22et6u30870d6a",
+  "$schema": "https://framework-1258016615.tcloudbaseapp.com/schema/latest.json",
+  "cloudrun": {
+    "name": "travel-api"
+  }
+}

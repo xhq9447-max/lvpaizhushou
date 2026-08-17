@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "scripts": {
     "dev": "nest start --watch",
+    "prebuild": "prisma generate",
     "build": "nest build",
     "start": "node dist/main.js",
     "lint": "eslint \"{src,test,prisma}/**/*.ts\"",
@@ -14,9 +15,11 @@
     "migration:dev": "prisma migrate dev",
     "seed": "prisma db seed"
   },
-  "prisma": { "seed": "tsx prisma/seed.ts" },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
   "dependencies": {
-    "@cloudbase/js-sdk": "3.8.0",
+    "@cloudbase/node-sdk": "^3.18.3",
     "@nestjs/common": "^11.1.6",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.1.6",

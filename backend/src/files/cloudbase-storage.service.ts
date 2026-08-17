@@ -1,6 +1,6 @@
 import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import cloudbase from '@cloudbase/js-sdk';
+import cloudbase from '@cloudbase/node-sdk';
 
 @Injectable()
 export class CloudBaseStorageService {
